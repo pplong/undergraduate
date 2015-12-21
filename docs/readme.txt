@@ -11,34 +11,29 @@ import from naive
 modified:
 concern on type:
 	type: for one service, only a part of service in the next task can be connected to
+	(self.next = type [service,service,...])
 
 add:class route
 
-every service sholud possess a attribute which idenify its task.
+every service sholud possess a attribute which idenify its task.([])
 
-so service should also be modify
+so service should also be modified
 
 should delete or modify class task and system
 
-mock search
+dfs full search
 no concern on the relationship between type and type (like Inclusion)
 
 ------------------------------------------------------------------------------
+12-21
+Try to add relationship between type and type
 
-pseudocode:
+------------------------------------------------------------------------------
+12-21
+skyline_naive:
+modified naive_kai.py into use naive skyline(in task) version
 
-对于 生成的workflow
-	生成一个预处理list。
-	
-	制造一个爬虫， 
-		dfs
 
-dfs:
-	function 深さ優先探索(v)
-    v に訪問済みの印を付ける
-    v を処理する(当分のrouteに追加、当分qosを計算)
-    for each v に接続している頂点 i do
-        if i が未訪問 then
-            深さ優先探索(i)
+
 
 
