@@ -1,7 +1,11 @@
 #from random import uniform
 from naive import service
 from random import uniform
+from random import choice
+from random import sample
 
+global count
+count = 0
 #---------modify the definition of class service---------
 def new_init(self,name,QoS,next):
 	self.name = name
@@ -9,7 +13,14 @@ def new_init(self,name,QoS,next):
 	self.sum = sum(QoS)
 	self.next = next #add
 
+def printf(self):
+	print "service: ",self.name
+	print self.QoS
+	print self.sum
+	print self.next
+
 service.__init__ = new_init
+service.printf = printf
 #--------------------------------------------------------
 
 class route(object):
@@ -34,21 +45,37 @@ class route(object):
 				route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search()
 		else:
 			if len(self.pro_route) == 10:
-				self.printf()
+				#self.printf()
+				global count
+				count = count + 1
 
 
+def random_choice(lists):
+	num = choice(range(0,len(lists)+1))
+	return sample(lists, num)
 
 
 if __name__ == '__main__':
-	service_list = []
-	for j in [99-n for n in range(0, 100)]:
-		QoS = [uniform(0,1) for k in range(10)]
-		if j >= 90:
-			service_list = [service(str(j),QoS,[])] + service_list
-		else:
-			service_list = [service(str(j),QoS,[service_list[j-90]])] + service_list
-	for i in range(10):
-		test = route([service_list[i]])
+	workflow = []
+	for i in [9-n for n in range(0,10)]: #10 tasks
+		service_list = []
+		for j in [9-n for n in range(0,10)]: #each task have 10 services
+			QoS = [uniform(0,1) for k in range(10)]
+			if i >= 9:
+				service_list = [service(str(j),QoS,[])] + service_list
+			else:
+				selected = random_choice(range(10))
+				next_service_list = []
+				for pp in selected:
+					next_service_list.append(workflow[0][pp])
+				service_list = [service(str(j),QoS,next_service_list)] + service_list
+		workflow = [service_list] + workflow
+
+	for start in workflow[0]:
+		test = route([start])
 		test.adapt_dfs_search()
+		print count
+
+
 
 
