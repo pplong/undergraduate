@@ -28,12 +28,15 @@ no concern on the relationship between type and type (like Inclusion)
 12-21
 Try to add relationship between type and type
 
+
 ------------------------------------------------------------------------------
 12-21
 skyline_naive:
 modified naive_kai.py into use naive skyline(in task) version
 
+------------------------------------------------------------------------------
+12-22
+task:
+send section sentence to ishikawa
 
-
-
-
+finish 12-21 task
