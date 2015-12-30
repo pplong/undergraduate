@@ -40,3 +40,37 @@ task:
 send section sentence to ishikawa
 
 finish 12-21 task
+
+------------------------------------------------------------------------------
+how to cluster the services in the task:
+	count every service  
+
+------------------------------------------------------------------------------
+12-26更新：
+	生成属性树：
+		inpurt：［ser，ser，，，］
+		output: [node,node,...]
+	先确定node个数。
+	对于每个node，找之前的
+
+------------------------------------------------------------------------------
+为了方便：launch.py
+
+from naive_kai import gen
+workflow = gen()
+task = workflow[0]
+from skyline import gen_node_list
+a = gen_node_list(task)
+for node in a:
+	node.printf()
+
+
+
+
+
+
+
+
+
+
+

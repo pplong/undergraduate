@@ -7,17 +7,18 @@ from random import sample
 global count
 count = 0
 #---------modify the definition of class service---------
-def new_init(self,name,QoS,next):
+def new_init(self,name,QoS,next,next_number):
 	self.name = name
 	self.QoS = QoS
 	self.sum = sum(QoS)
 	self.next = next #add
+	self.next_number = next_number
 
 def printf(self):
 	print "service: ",self.name
 	print self.QoS
 	print self.sum
-	print self.next
+	print self.next_number
 
 service.__init__ = new_init
 service.printf = printf
@@ -39,12 +40,12 @@ class route(object):
 			service_instance.printf()
 			i = i + 1
 
-	def adapt_dfs_search(self):
+	def adapt_dfs_search(self,end_list):
 		if self.last.next != []:
 			for next in self.last.next:
-				route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search()
+				route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list)
 		else:
-			if len(self.pro_route) == 10:
+			if len(self.pro_route) == 10 and int(self.pro_route[-1].name) in end_list:
 				#self.printf()
 				global count
 				count = count + 1
@@ -54,28 +55,32 @@ def random_choice(lists):
 	num = choice(range(0,len(lists)+1))
 	return sample(lists, num)
 
-
-if __name__ == '__main__':
+def gen():
 	workflow = []
 	for i in [9-n for n in range(0,10)]: #10 tasks
 		service_list = []
 		for j in [9-n for n in range(0,10)]: #each task have 10 services
 			QoS = [uniform(0,1) for k in range(10)]
 			if i >= 9:
-				service_list = [service(str(j),QoS,[])] + service_list
+				service_list = [service(str(j),QoS,[],[])] + service_list
 			else:
-				selected = random_choice(range(10))
+				selected = sorted(random_choice(range(10)))
 				next_service_list = []
 				for pp in selected:
 					next_service_list.append(workflow[0][pp])
-				service_list = [service(str(j),QoS,next_service_list)] + service_list
+				service_list = [service(str(j),QoS,next_service_list,selected)] + service_list
 		workflow = [service_list] + workflow
+	return workflow
 
-	for start in workflow[0]:
-		test = route([start])
-		test.adapt_dfs_search()
+if __name__ == '__main__':
+	workflow = gen()
+	start = sorted(random_choice(range(10)))
+	end = sorted(random_choice(range(10)))
+	print start,end
+
+	for index in start:
+		start_service = workflow[0][index]
+		test = route([start_service])
+		test.adapt_dfs_search(end)
 		print count
-
-
-
 
