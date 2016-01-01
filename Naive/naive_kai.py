@@ -42,7 +42,7 @@ class route(object):
 
 	def adapt_dfs_search(self,end_list):
 		if self.last.next != []:
-			for next in self.last.next:
+			for next in self.last.next:##### need to add skyline algorithm
 				route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list)
 		else:
 			if len(self.pro_route) == 10 and int(self.pro_route[-1].name) in end_list:
