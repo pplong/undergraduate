@@ -1,6 +1,7 @@
 ## -*- coding: utf-8 -*-
 from naive_kai import service,route
 from naive_kai import gen,random_choice
+from random import uniform
 import copy
 
 global count
@@ -163,16 +164,70 @@ def gen_node_list(service_list1): #input := [ser,ser,...], output := [node, node
 
 	return fin
 
-if __name__ == "__main__":
-	workflow = gen()
-#-----------add-------------
-	node_map = map(lambda x: gen_node_list(x),workflow)
-#---------------------------
-	start = sorted(random_choice(range(10)))
-	end = sorted(random_choice(range(10)))
+#----------------add to skyline.py--------------------
+def gen_for_start_end():
+	workflow = []
+	for i in [1-n for n in range(0,2)]: #10 tasks
+		service_list = []
+		for j in [9-n for n in range(0,10)]: #each task have 10 services
+			QoS = [uniform(0,1) for k in range(10)]
+			if i >= 1:
+				service_list = [service(str(j),QoS,[],[])] + service_list
+			else:
+				selected = sorted(random_choice(range(10)))
+				next_service_list = []
+				for pp in selected:
+					next_service_list.append(workflow[0][pp])
+				service_list = [service(str(j),QoS,next_service_list,selected)] + service_list
+		workflow = [service_list] + workflow
+	return workflow
+
+def strong():#output := [[1,2,3],[3,2,4],...]
+	start_or_end = gen_for_start_end()[0]#type:[ser,ser,...]
+	this_map = gen_node_list(start_or_end)
+	#Need to expand
+	ans = range(10)
+	for node in this_map:
+		for name in node.name_list:
+			temp = []
+			for dom_node in node.task_down:
+				temp = temp + dom_node.name_list
+			ans[int(name)] = map(int,temp)
+
+	for i in range(len(ans)):
+		sers1 = ans[i]
+		for j in range(len(ans)):
+			sers2 = ans[j]
+			if issub(sers1,sers2) and set(sers1) != set(sers2):
+				ans[j] = diff(sers2 , sers1)
+
+	return ans
+
+
+def weak(strong_list):#input:strong_list
+	ans = [[]] * len(strong_list)
+	for i in range(len(strong_list)):
+		wait_list = strong_list[i]
+		for connect in wait_list:
+			ans[connect] = ans[connect] + [i]
+	return ans
+
+
+def bure(chosed,strong_list,weak_list):
+	one_strong , one_weak = [] , []
+	for ser_number in chosed:
+		one_strong = one_strong + strong_list[ser_number]
+		one_weak= one_weak + weak_list[ser_number]
+	one_strong = diff(one_strong , chosed)
+	one_weak = diff(one_weak , chosed)
+	return  one_strong, one_weak
+
+
+#-----------------------------------------------------
+def run(start,end,node_map):
 	print start,end
-
-
+	global best
+	best = 0
 	for index in start:
 		start_service = workflow[0][index]
 		test = route([start_service],start_service.sum)
@@ -180,8 +235,45 @@ if __name__ == "__main__":
 		print count
 
 	print best
-	if best_route != None: 
-		best_route.printf()
+	#global best_route
+	#if best_route != None: 
+	#	best_route.printf()
 
 
 
+
+if __name__ == "__main__":
+	workflow = gen()
+#-----------add to naive_kai-------------
+	node_map = map(lambda x: gen_node_list(x),workflow)
+#----------------------------------------
+	start = sorted(random_choice(range(10)))
+	end = sorted(random_choice(range(10)))
+
+	print "------------------------------fixed------------------------------"
+	run(start,end,node_map)
+
+#----------------add to skyline.py--------------------
+	#先生成全图，之后参照
+	start_strong_list , end_strong_list = strong(), strong()
+	start_weak_list , end_weak_list = weak(start_strong_list) , weak(end_strong_list)
+	##need to modify after
+	start_one_strong, start_one_weak = bure(start,start_strong_list,start_weak_list)
+	end_one_strong, end_one_weak = bure(end,end_strong_list,end_weak_list)
+	print "----------------------one_strong,one_strong------------------------"
+	run(start_one_strong,end_one_strong,node_map)
+	print "----------------------one_strong,one_weak------------------------"
+	run(start_one_strong,end_one_weak,node_map)
+	print "----------------------one_weak,one_strong------------------------"
+	run(start_one_weak,end_one_strong,node_map)
+	print "----------------------one_weak,one_weak------------------------"
+	run(start_one_weak,end_one_weak,node_map)
+
+
+
+
+
+
+
+
+#-----------------------------------------------------

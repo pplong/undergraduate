@@ -72,6 +72,23 @@ def gen():
 		workflow = [service_list] + workflow
 	return workflow
 
+def gen_for_start_end():
+	workflow = []
+	for i in [1-n for n in range(0,2)]: #10 tasks
+		service_list = []
+		for j in [9-n for n in range(0,10)]: #each task have 10 services
+			QoS = [uniform(0,1) for k in range(10)]
+			if i >= 1:
+				service_list = [service(str(j),QoS,[],[])] + service_list
+			else:
+				selected = sorted(random_choice(range(10)))
+				next_service_list = []
+				for pp in selected:
+					next_service_list.append(workflow[0][pp])
+				service_list = [service(str(j),QoS,next_service_list,selected)] + service_list
+		workflow = [service_list] + workflow
+	return workflow
+
 if __name__ == '__main__':
 	workflow = gen()
 	start = sorted(random_choice(range(10)))
