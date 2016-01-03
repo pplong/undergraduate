@@ -82,15 +82,37 @@ launch.py:z全探索とskylineを用いたバージョン。効果覿面
 skyline_bure.pyブレバージョン
 launch1.py:ブレとブレではないバージョンの比較
 
-from skyline_bure import strong, weak ,bure
+from skyline_bure import strong,one_strong ,weak ,bure
 
-ans = [[4], [2], [4], [1], [], [0, 8, 3, 6, 9], [4], [0, 8, 3, 6, 9], [4], [2]]
+#ans0 = strong() 
+ans0 = [[6, 7, 9, 8, 1, 3],
+ [6],
+ [6, 7, 9, 8, 1, 5, 4],
+ [6],
+ [6, 7, 9, 1],
+ [6],
+ [],
+ [6],
+ [6],
+ [6]]
+ans = one_strong(ans0)
 
-ans1 = [[5, 7], [3], [1, 9], [5, 7], [0, 2, 6, 8], [], [5, 7], [], [5, 7], [5, 7]]
+ans1 = weak(ans)
 
-one_strong,one_weak = bure([1,4,8],ans,ans1)
+one_strong,one_weak = bure([1,2],ans,ans1)
 
 ブレ　完了：結果良さそう
 
+p = [[1,2,3],[3],[3],[]]
+
+one_strong(p)
 
 
+
+----------------------------------------------------------------------------
+1-3更新：
+将strong的定义从1段强 修改强的无上限。
+
+修改了bug：最后的task的service选择错误
+
+修改了bug：one_strong和strong的生成关系

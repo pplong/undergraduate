@@ -84,7 +84,7 @@ class route(object):
 		
 		if len(self.pro_route) == 9:#登龙门，还有一步成功
 
-			sers = [i for i in self.last.next if int(self.last.name) in end_list]#取sers和可取end的交集
+			sers = [i for i in self.last.next if int(i.name) in end_list]#取sers和可取end的交集
 			sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
 			if sers != []:
 				done = route(self.pro_route + [sers[-1]] , self.QoS_sum + sers[-1].sum)
@@ -156,7 +156,7 @@ def adapt_dfs_search(self,end_list):
 
 	if len(self.pro_route) == 9:#登龙门，还有一步成功
 	
-		sers = [i for i in self.last.next if int(self.last.name) in end_list]#取sers和可取end的交集
+		sers = [i for i in self.last.next if int(i.name) in end_list]#取sers和可取end的交集
 		sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
 		if sers != []:
 			done = route(self.pro_route + [sers[-1]] , self.QoS_sum + sers[-1].sum)
@@ -317,8 +317,10 @@ node_map = map(lambda x: gen_node_list(x),workflow)
 #end = sorted(random_choice(range(10)))
 print start,end
 
+
 for index in start:
 	start_service = workflow[0][index]
+
 
 	best2 = 0
 	print "---------------"
@@ -328,4 +330,6 @@ for index in start:
 	print best2
 
 	print count
+
+
 

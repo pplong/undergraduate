@@ -15,7 +15,7 @@ def adapt_dfs_search(self,end_list,node_map):
 
 	if len(self.pro_route) == 9:#登龙门，还有一步成功
 
-		sers = [i for i in self.last.next if int(self.last.name) in end_list]#取sers和可取end的交集
+		sers = [i for i in self.last.next if int(i.name) in end_list]#取sers和可取end的交集
 		sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
 		if sers != []:
 			done = route(self.pro_route + [sers[-1]] , self.QoS_sum + sers[-1].sum)

@@ -16,7 +16,7 @@ def adapt_dfs_search(self,end_list,node_map):
 
 	if len(self.pro_route) == 9:#登龙门，还有一步成功
 
-		sers = [i for i in self.last.next if int(self.last.name) in end_list]#取sers和可取end的交集
+		sers = [i for i in self.last.next if int(i.name) in end_list]#取sers和可取end的交集
 		sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
 		if sers != []:
 			done = route(self.pro_route + [sers[-1]] , self.QoS_sum + sers[-1].sum)
@@ -182,6 +182,7 @@ def gen_for_start_end():
 		workflow = [service_list] + workflow
 	return workflow
 
+
 def strong():#output := [[1,2,3],[3,2,4],...]
 	start_or_end = gen_for_start_end()[0]#type:[ser,ser,...]
 	this_map = gen_node_list(start_or_end)
@@ -193,15 +194,39 @@ def strong():#output := [[1,2,3],[3,2,4],...]
 			for dom_node in node.task_down:
 				temp = temp + dom_node.name_list
 			ans[int(name)] = map(int,temp)
-
+	return ans
+"""
+def one_strong(ans1):
+	ans = copy.deepcopy(ans1)
 	for i in range(len(ans)):
 		sers1 = ans[i]
 		for j in range(len(ans)):
 			sers2 = ans[j]
 			if issub(sers1,sers2) and set(sers1) != set(sers2):
 				ans[j] = diff(sers2 , sers1)
-
 	return ans
+"""
+def one_strong(ans1):
+	ans = copy.deepcopy(ans1)
+	for i in range(len(ans)):
+		ser1 = ans1[i]
+		temp = map(lambda x: ans1[x] + [x], ser1) #ok
+		#print temp
+		for m in range(len(temp)):
+			sers2 = temp[m]
+			for n in range(len(temp)):
+				sers3 = temp[n]
+				if issub(sers2,sers3) and set(sers2) != set(sers3):
+					ans[i][m] = -1
+	def del_m1(l):
+		return [i for i in l if i != -1]
+
+	#print ans
+	return map(del_m1, ans)
+
+
+
+
 
 
 def weak(strong_list):#input:strong_list
@@ -223,22 +248,57 @@ def bure(chosed,strong_list,weak_list):
 	return  one_strong, one_weak
 
 
-#-----------------------------------------------------
-def run(start,end,node_map):
+
+def run_original(start,end,node_map,workflow):
 	print start,end
 	global best
 	best = 0
+	global count
+	count = 0
+
+	global best_route	
+	best_route = None
+
+	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
+
 	for index in start:
-		start_service = workflow[0][index]
+		print "start from service: ",index.name
+		start_service = index
 		test = route([start_service],start_service.sum)
 		test.adapt_dfs_search(end,node_map)
 		print count
 
 	print best
-	#global best_route
-	#if best_route != None: 
-	#	best_route.printf()
 
+	if best_route != None: 
+		print "start from: ",best_route.pro_route[0].name ," end at: ",best_route.pro_route[-1].name
+
+def run(start,end,node_map,workflow,original_best_QoS):
+	print start,end
+	global best
+	best = 0
+	global count
+	count = 0
+
+	global best_route	
+	best_route = None
+
+	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
+
+	for index in start:
+		print "start from service: ",index.name
+		start_service = index
+		test = route([start_service],start_service.sum)
+		test.adapt_dfs_search(end,node_map)
+		print count
+
+	if best > original_best_QoS:
+		print best
+		print "start from: ",best_route.pro_route[0].name ," end at: ",best_route.pro_route[-1].name
+
+	else:
+		print "Nothing good than fixed"
+#-----------------------------------------------------
 
 
 
@@ -251,23 +311,35 @@ if __name__ == "__main__":
 	end = sorted(random_choice(range(10)))
 
 	print "------------------------------fixed------------------------------"
-	run(start,end,node_map)
+	run_original(start,end,node_map,workflow)
+	original_best_QoS = best
 
 #----------------add to skyline.py--------------------
 	#先生成全图，之后参照
-	start_strong_list , end_strong_list = strong(), strong()
-	start_weak_list , end_weak_list = weak(start_strong_list) , weak(end_strong_list)
+	start_strong_list , end_strong_list = strong(), strong()#ここのstrongは、自分たちよりstrongのすべて
+	temp1 , temp2 = one_strong(start_strong_list) , one_strong(end_strong_list)#これは自分たちより一段と強い
+	start_weak_list , end_weak_list = weak(temp1) , weak(temp2)
 	##need to modify after
 	start_one_strong, start_one_weak = bure(start,start_strong_list,start_weak_list)
 	end_one_strong, end_one_weak = bure(end,end_strong_list,end_weak_list)
-	print "----------------------one_strong,one_strong------------------------"
-	run(start_one_strong,end_one_strong,node_map)
-	print "----------------------one_strong,one_weak------------------------"
-	run(start_one_strong,end_one_weak,node_map)
-	print "----------------------one_weak,one_strong------------------------"
-	run(start_one_weak,end_one_strong,node_map)
+
+	print "----------------------strong,fixed------------------------"
+	run(start_one_strong,end,node_map,workflow,original_best_QoS)
+	print "----------------------fixed,strong------------------------"
+	run(start,end_one_strong,node_map,workflow,original_best_QoS)
+	print "----------------------one_weak,fixed------------------------"
+	run(start_one_weak,end,node_map,workflow,original_best_QoS)
+	print "----------------------fixed,one_weak------------------------"
+	run(start,end_one_weak,node_map,workflow,original_best_QoS)
+
+	print "----------------------strong,strong------------------------"
+	run(start_one_strong,end_one_strong,node_map,workflow,original_best_QoS)
+	print "----------------------strong,one_weak------------------------"
+	run(start_one_strong,end_one_weak,node_map,workflow,original_best_QoS)
+	print "----------------------one_weak,strong------------------------"
+	run(start_one_weak,end_one_strong,node_map,workflow,original_best_QoS)
 	print "----------------------one_weak,one_weak------------------------"
-	run(start_one_weak,end_one_weak,node_map)
+	run(start_one_weak,end_one_weak,node_map,workflow,original_best_QoS)
 
 
 
