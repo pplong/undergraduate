@@ -318,26 +318,26 @@ if __name__ == "__main__":
 	#先生成全图，之后参照
 	start_strong_list , end_strong_list = strong(), strong()#ここのstrongは、自分たちよりstrongのすべて
 	temp1 , temp2 = one_strong(start_strong_list) , one_strong(end_strong_list)#これは自分たちより一段と強い
-	start_weak_list , end_weak_list = weak(temp1) , weak(temp2)
+	start_weak_list , end_weak_list = weak(temp1) , weak(temp2)#自分より一段と弱い
 	##need to modify after
-	start_one_strong, start_one_weak = bure(start,start_strong_list,start_weak_list)
-	end_one_strong, end_one_weak = bure(end,end_strong_list,end_weak_list)
+	start_strong, start_one_weak = bure(start,start_strong_list,start_weak_list)
+	end_strong, end_one_weak = bure(end,end_strong_list,end_weak_list)
 
 	print "----------------------strong,fixed------------------------"
-	run(start_one_strong,end,node_map,workflow,original_best_QoS)
+	run(start_strong,end,node_map,workflow,original_best_QoS)
 	print "----------------------fixed,strong------------------------"
-	run(start,end_one_strong,node_map,workflow,original_best_QoS)
+	run(start,end_strong,node_map,workflow,original_best_QoS)
 	print "----------------------one_weak,fixed------------------------"
 	run(start_one_weak,end,node_map,workflow,original_best_QoS)
 	print "----------------------fixed,one_weak------------------------"
 	run(start,end_one_weak,node_map,workflow,original_best_QoS)
 
 	print "----------------------strong,strong------------------------"
-	run(start_one_strong,end_one_strong,node_map,workflow,original_best_QoS)
+	run(start_strong,end_strong,node_map,workflow,original_best_QoS)
 	print "----------------------strong,one_weak------------------------"
-	run(start_one_strong,end_one_weak,node_map,workflow,original_best_QoS)
+	run(start_strong,end_one_weak,node_map,workflow,original_best_QoS)
 	print "----------------------one_weak,strong------------------------"
-	run(start_one_weak,end_one_strong,node_map,workflow,original_best_QoS)
+	run(start_one_weak,end_strong,node_map,workflow,original_best_QoS)
 	print "----------------------one_weak,one_weak------------------------"
 	run(start_one_weak,end_one_weak,node_map,workflow,original_best_QoS)
 
