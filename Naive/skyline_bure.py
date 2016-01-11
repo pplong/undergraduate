@@ -3,7 +3,7 @@ from naive_kai import service,route
 from naive_kai import gen,random_choice
 from random import uniform
 import copy
-
+import csv
 global count
 count = 0
 global best
@@ -316,7 +316,7 @@ def run_original(start,end,node_map,workflow):
 	best_route = None
 
 	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
-
+	#start = disable(start)
 	for index in start:
 		#print "start from service: ",index.name
 		start_service = index
@@ -344,7 +344,7 @@ def run(start,end,node_map,workflow,original_best_QoS):
 	best_route = None
 
 	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
-
+	#start = disable(start)
 	for index in start:
 		#print "start from service: ",index.name
 		start_service = index
@@ -407,12 +407,25 @@ def run_kai(start,start_strong,start_weak,end,end_strong,end_weak,node_map,workf
 	#保证startfsw的必有一个
 
 	#-----------------------
-	start1 = skyline_service_select([workflow[0][i] for i in start],0,node_map)
-	start_strong1 = skyline_service_select([workflow[0][i] for i in start_strong],0,node_map)
-	start_weak1 = skyline_service_select([workflow[0][i] for i in start_weak],0,node_map)
+	def sers_to_number(sers):
+		ans = []
+		for ser in sers:
+			ans.append(int(ser.name))
+		return ans
+	def number_to_sers(number):
+		ans = []
+		for num in number:
+			ans.append(workflow[0][num])
+		return ans
+
+	start1 = sers_to_number(skyline_service_select([workflow[0][i] for i in start],0,node_map))
+	start_strong1 = sers_to_number(skyline_service_select([workflow[0][i] for i in start_strong],0,node_map))
+	start_weak1 = sers_to_number(skyline_service_select([workflow[0][i] for i in start_weak],0,node_map))
 
 	union_start = union3(start1,start_strong1,start_weak1)
-
+	#print union_start
+	union_start = number_to_sers(union_start)
+	#union_start = disable(union_start)
 	union_end  = union3(end,end_strong,end_weak)
 		
 	#print union_start,union_end
@@ -453,7 +466,7 @@ if __name__ == "__main__":
 
 	version3_ans = [0]*9
 
-	print "---------------------------------version3---------------------------------"
+	#print "---------------------------------version3---------------------------------"
 	#print "------------------------------fixed------------------------------"
 	version3_ans[0] = run_original(start,end,node_map,workflow)
 	original_best_QoS = best
@@ -484,14 +497,26 @@ if __name__ == "__main__":
 	#print "----------------------one_weak,one_weak------------------------"
 	version3_ans[8] = run(start_one_weak,end_one_weak,node_map,workflow,original_best_QoS)
 	
-	print version3_ans
-	print count
 
-	print "---------------------------------version4---------------------------------"
+	writer = csv.writer(file('experiment2.csv', 'a+'))
+	#writer.writerow(['fixed', 'fixed-strong', 'fixed-one_weak','strong-fixed','strong-strong','strong-one_weak','one_weak-fixed','one_weak-strong','one_weak-one_weak'])
+	line = version3_ans
+	writer.writerow(line)
+
+
+	#print version3_ans
+	#print count
+	version3_count = count
+	#print "---------------------------------version4---------------------------------"
 	version4_ans = [0]*9
 	route.adapt_dfs_search = adapt_dfs_search_kai
 	#print "------------------------------------------------run_kai---------------------------------------------------------------"
 	run_kai(start,start_strong,start_one_weak,end,end_strong,end_one_weak,node_map,workflow)
-	print version4_ans
-	print count
+	#print version4_ans
+	#print count
+	writer = csv.writer(file('experiment3.csv', 'a+'))
+	#writer.writerow(['version3_count', 'version4_count', 'is_equal'])
+	line = [version3_count,count,version3_ans == version4_ans]
+	writer.writerow(line)
+
 #-----------------------------------------------------

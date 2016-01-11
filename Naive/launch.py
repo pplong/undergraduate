@@ -6,7 +6,7 @@ from random import uniform
 from random import choice
 from random import sample
 import copy
-
+import csv
 global count
 count = 0
 
@@ -97,21 +97,26 @@ def gen():
 workflow = gen()
 start = sorted(random_choice(range(10)))
 end = sorted(random_choice(range(10)))
-print start,end
+#print start,end
 
+
+best1 = 0
 for index in start:
 	start_service = workflow[0][index]
 
-	best1 = 0
-	print "---------------"
-	print "start from:",index
+	
+	#print "---------------"
+	#print "start from:",index
 	test = route([start_service],start_service.sum)	
 	test.adapt_dfs_search(end)
-	print best1
+	#ans1.append(best1)
+	#print best1
 
-	print count
+	#print count
 
-print "-----------------------------------------------------------"
+#print "-----------------------------------------------------------"
+
+full_search = count
 
 #----------------------------skyline------------------------------
 global node_map
@@ -303,21 +308,29 @@ node_map = map(lambda x: gen_node_list(x),workflow)
 #---------------------------
 #start = sorted(random_choice(range(10)))
 #end = sorted(random_choice(range(10)))
-print start,end
+#print start,end
 
+#ans2 = []
 
-for index in start:
-	start_service = workflow[0][index]
+start_sers = skyline_service_select([workflow[0][i] for i in start],0) #add: skyline algorithm
+start_sers = disable(start_sers)
 
-
-	best2 = 0
-	print "---------------"
-	print "start from:",index
+best2 = 0
+for ser in start_sers:
+	start_service = ser
+	#print "---------------"
+	#print "start from:",index
 	test = route([start_service],start_service.sum)
 	test.adapt_dfs_search(end)
-	print best2
+	#print best2
+	#ans2.append(best2)
+	#print count
 
-	print count
 
+
+writer = csv.writer(file('experiment1.csv', 'a+'))
+#writer.writerow(['Full_search', 'Skyline', 'is_equal'])
+line = [full_search,count,best1 == best2]
+writer.writerow(line)
 
 
