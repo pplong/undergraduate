@@ -10,7 +10,8 @@ global best
 best = 0
 global best_route
 best_route = None
-
+global version4_ans
+version4_ans = [0]*9
 
 
 def adapt_dfs_search(self,end_list,node_map):
@@ -40,33 +41,48 @@ def adapt_dfs_search(self,end_list,node_map):
 			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map)
 
 route.adapt_dfs_search = adapt_dfs_search
-"""
-def adapt_dfs_search_kai(self,end_list,node_map,prepare):#end_listはstorng , fixed , one_weakの和集合	
+
+
+def adapt_dfs_search_kai(self,end_list,node_map,start,start_strong,start_weak,end,end_strong,end_weak):
+
 	global count
 	if len(self.pro_route) == 9:#登龙门，还有一步成功
-		sers = [i for i in self.last.next if int(i.name) in end_list]
-		#sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
-		for ser in sers:
-			done = route(self.pro_route + ser , self.QoS_sum + ser.sum)
+
+		sers_kai = []
+		def takelist(l):
+			sers = [i for i in self.last.next if int(i.name) in l]#取sers和可取end的交集
+			sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
+			if sers != []:
+				sers_kai.append(sers[-1])
+		takelist(end)
+		takelist(end_strong)
+		takelist(end_weak)
+		#-----------------
+		#保证endfsw至少有一个
+		
+		#-----------------
+		for ser in sers_kai:
+			done = route(self.pro_route + [ser] , self.QoS_sum + ser.sum)
+			
 			count = count + 1
+
 			#------add--------
-			index = int(done.last.name)
-			if prepare[index] == []:
-				prepare[index] = done
-			else:
-				if prepare[index].QoS_sum < done.QoS_sum:
-					prepare[index] = done
-			return prepare
+			global version4_ans
+			put_in(done.QoS_sum,int(done.pro_route[0].name),int(done.pro_route[-1].name),start,start_strong,start_weak,end,end_strong,end_weak)
 			#-----------------
+
 		else:
 			pass
 
 	elif self.last.next != []:#非空，所以这里不可能是最后一个，pro_route长度不会等于10
 		sers = skyline_service_select(self.last.next,len(self.pro_route),node_map) #add: skyline algorithm
+		if len(self.pro_route) < 8:
+			sers = diable(sers)
 		for next in sers:
 			count = count + 1  #add
-			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map)
-"""
+			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map,start,start_strong,start_weak,end,end_strong,end_weak)
+
+
 
 
 
@@ -163,8 +179,25 @@ def skyline_service_select(service_list,task_number,node_map):
 	ans.sort(key = lambda service : service.name)
 	return ans
 
-	
 
+
+#---------------最終アルゴリズム----------------
+def diable(service_list1):
+	service_list = copy.deepcopy(service_list1)
+	service_list.sort(key = lambda service : -service.sum)
+	used = []
+	used_number = []
+	for i in range(len(service_list)):
+		temp = service_list[i]
+		next = diff(temp.next,used)
+		next_number = diff(temp.next_number,used_number)
+		used  = used + next
+		used_number = used_number + next_number
+		service_list[i].next = next
+		service_list[i].next_number = next_number
+
+	return service_list
+#---------------最終アルゴリズム----------------
 
 def diff(a, b): #output := a-b
 	return list(set(a)-set(b))
@@ -335,21 +368,52 @@ def union(a,b):
 def union3(a,b,c):
 	return union(union(a,b),c)
 
-"""
-def put_in(best,best_start,best_end,start,start_strong,start_weak,end,end_strong,end_weak,ans):
-	if best_start in start and best_end in end and best > ans[0]:
-		ans[0] = best
-	elif best_start in 
-"""
+
+def put_in(done_QoS,done_start,done_end,start,start_strong,start_weak,end,end_strong,end_weak):
+	global version4_ans
+
+	def change(model):
+		model_start, model_end, model_QoS = model
+		if done_start in model_start and done_end in model_end:
+			if done_QoS > model_QoS:
+				return (model_start,model_end,done_QoS)
+			else:
+				return model
+		else:
+			return model
+
+
+	start_fsw = [start,start_strong,start_weak]
+	end_fsw = [end,end_strong,end_weak]
+
+	l = []
+	for i in range(len(start_fsw)):
+		s = start_fsw[i]
+		for j in range(len(end_fsw)):
+			e = end_fsw[j]
+			l.append((s,e,version4_ans[i*3+j]))
+	new_l = map(change,l)
+	#print new_l
+	#print version4_ans
+	version4_ans = [c for (dummy1,dummy2,c) in new_l]
+
 
 
 def run_kai(start,start_strong,start_weak,end,end_strong,end_weak,node_map,workflow):
-	#ans = [0]*9
 
-	union_start = union3(start,start_strong,start_weak)
+	#-----------------------
+	#保证startfsw的必有一个
+
+	#-----------------------
+	start1 = skyline_service_select([workflow[0][i] for i in start],0,node_map)
+	start_strong1 = skyline_service_select([workflow[0][i] for i in start_strong],0,node_map)
+	start_weak1 = skyline_service_select([workflow[0][i] for i in start_weak],0,node_map)
+
+	union_start = union3(start1,start_strong1,start_weak1)
+
 	union_end  = union3(end,end_strong,end_weak)
-
-	print union_start,union_end
+		
+	#print union_start,union_end
 	global best
 	best = 0
 	global count
@@ -358,27 +422,17 @@ def run_kai(start,start_strong,start_weak,end,end_strong,end_weak,node_map,workf
 	global best_route
 	best_route = None
 
-	union_start = skyline_service_select([workflow[0][i] for i in union_start],0,node_map) #add: skyline algorithm
+	global version4_ans
+	version4_ans = [0] * 9
+
+	#union_start = skyline_service_select([workflow[0][i] for i in union_start],0,node_map) #add: skyline algorithm
 
 	for index in union_start:
-		print "start from service: ",index.name
+		#print "start from service: ",index.name
 		start_service = index
 		test = route([start_service],start_service.sum)
-		test.adapt_dfs_search(union_end,node_map)
-		print count
-
-	if best > 0:
-		best_start = int(best_route.pro_route[0].name)
-		best_end = int(best_route.pro_route[-1].name)
-		if best_start in start and best_end in end:
-			print "fixed is best!!!"
-			print best
-			print "start from: ",best_start ," end at: ",best_end
-		else:
-			print "better than fixed!!!"
-			print best
-			print "start from: ",best_start ," end at: ",best_end
-
+		test.adapt_dfs_search(union_end,node_map,start,start_strong,start_weak,end,end_strong,end_weak)  ###modify
+		#print count
 
 #-----------------------------------------------------
 
@@ -411,20 +465,18 @@ if __name__ == "__main__":
 	start_strong, start_one_weak = bure(start,start_strong_list,start_weak_list)
 	end_strong, end_one_weak = bure(end,end_strong_list,end_weak_list)
 
-
-	#print "----------------------strong,fixed------------------------"
-	version3_ans[1] = run(start_strong,end,node_map,workflow,original_best_QoS)
 	#print "----------------------fixed,strong------------------------"
-	version3_ans[2] = run(start,end_strong,node_map,workflow,original_best_QoS)
-	#print "----------------------one_weak,fixed------------------------"
-	version3_ans[3] = run(start_one_weak,end,node_map,workflow,original_best_QoS)
+	version3_ans[1] = run(start,end_strong,node_map,workflow,original_best_QoS)
 	#print "----------------------fixed,one_weak------------------------"
-	version3_ans[4] = run(start,end_one_weak,node_map,workflow,original_best_QoS)
-
+	version3_ans[2] = run(start,end_one_weak,node_map,workflow,original_best_QoS)
+	#print "----------------------strong,fixed------------------------"
+	version3_ans[3] = run(start_strong,end,node_map,workflow,original_best_QoS)
 	#print "----------------------strong,strong------------------------"
-	version3_ans[5] = run(start_strong,end_strong,node_map,workflow,original_best_QoS)
+	version3_ans[4] = run(start_strong,end_strong,node_map,workflow,original_best_QoS)
 	#print "----------------------strong,one_weak------------------------"
-	version3_ans[6] = run(start_strong,end_one_weak,node_map,workflow,original_best_QoS)
+	version3_ans[5] = run(start_strong,end_one_weak,node_map,workflow,original_best_QoS)
+	#print "----------------------one_weak,fixed------------------------"
+	version3_ans[6] = run(start_one_weak,end,node_map,workflow,original_best_QoS)
 	#print "----------------------one_weak,strong------------------------"
 	version3_ans[7] = run(start_one_weak,end_strong,node_map,workflow,original_best_QoS)
 	#print "----------------------one_weak,one_weak------------------------"
@@ -433,7 +485,11 @@ if __name__ == "__main__":
 	print version3_ans
 	print count
 
-	print "---------------------------------version3---------------------------------"
+	print "---------------------------------version4---------------------------------"
+	version4_ans = [0]*9
+	route.adapt_dfs_search = adapt_dfs_search_kai
 	#print "------------------------------------------------run_kai---------------------------------------------------------------"
 	run_kai(start,start_strong,start_one_weak,end,end_strong,end_one_weak,node_map,workflow)
+	print version4_ans
+	print count
 #-----------------------------------------------------

@@ -116,3 +116,13 @@ one_strong(p)
 修改了bug：最后的task的service选择错误
 
 修改了bug：one_strong和strong的生成关系
+----------------------------------------------------------------------------
+1-11更新：
+version4完成：
+	优化部分：
+	只要是将start和end合并运算：
+		start的f s w中各选skyline然后合并作为发射start
+		写入end中时注意尽可能留下fsw中最大的。
+
+
+
