@@ -12,15 +12,16 @@ global best_route
 best_route = None
 
 
-def adapt_dfs_search(self,end_list,node_map):
 
+def adapt_dfs_search(self,end_list,node_map):
+	global count
 	if len(self.pro_route) == 9:#登龙门，还有一步成功
 
 		sers = [i for i in self.last.next if int(i.name) in end_list]#取sers和可取end的交集
 		sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
 		if sers != []:
 			done = route(self.pro_route + [sers[-1]] , self.QoS_sum + sers[-1].sum)
-			global count
+			
 			count = count + 1
 			#------add--------
 			global best
@@ -35,9 +36,39 @@ def adapt_dfs_search(self,end_list,node_map):
 	elif self.last.next != []:#非空，所以这里不可能是最后一个，pro_route长度不会等于10
 		sers = skyline_service_select(self.last.next,len(self.pro_route),node_map) #add: skyline algorithm
 		for next in sers:
+			count = count + 1  #add
 			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map)
 
 route.adapt_dfs_search = adapt_dfs_search
+"""
+def adapt_dfs_search_kai(self,end_list,node_map,prepare):#end_listはstorng , fixed , one_weakの和集合	
+	global count
+	if len(self.pro_route) == 9:#登龙门，还有一步成功
+		sers = [i for i in self.last.next if int(i.name) in end_list]
+		#sers.sort(key = lambda service: service.sum)#按Q排列，大的在后
+		for ser in sers:
+			done = route(self.pro_route + ser , self.QoS_sum + ser.sum)
+			count = count + 1
+			#------add--------
+			index = int(done.last.name)
+			if prepare[index] == []:
+				prepare[index] = done
+			else:
+				if prepare[index].QoS_sum < done.QoS_sum:
+					prepare[index] = done
+			return prepare
+			#-----------------
+		else:
+			pass
+
+	elif self.last.next != []:#非空，所以这里不可能是最后一个，pro_route长度不会等于10
+		sers = skyline_service_select(self.last.next,len(self.pro_route),node_map) #add: skyline algorithm
+		for next in sers:
+			count = count + 1  #add
+			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map)
+"""
+
+
 
 
 class node(object): #在计算到这个task的时候自动生成。或者还是一开始就生成比较好？起码node内合并还是到了再用比较好。
@@ -195,17 +226,7 @@ def strong():#output := [[1,2,3],[3,2,4],...]
 				temp = temp + dom_node.name_list
 			ans[int(name)] = map(int,temp)
 	return ans
-"""
-def one_strong(ans1):
-	ans = copy.deepcopy(ans1)
-	for i in range(len(ans)):
-		sers1 = ans[i]
-		for j in range(len(ans)):
-			sers2 = ans[j]
-			if issub(sers1,sers2) and set(sers1) != set(sers2):
-				ans[j] = diff(sers2 , sers1)
-	return ans
-"""
+
 def one_strong(ans1):
 	ans = copy.deepcopy(ans1)
 	for i in range(len(ans)):
@@ -250,7 +271,7 @@ def bure(chosed,strong_list,weak_list):
 
 
 def run_original(start,end,node_map,workflow):
-	print start,end
+	#print start,end
 	global best
 	best = 0
 	global count
@@ -262,23 +283,27 @@ def run_original(start,end,node_map,workflow):
 	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
 
 	for index in start:
-		print "start from service: ",index.name
+		#print "start from service: ",index.name
 		start_service = index
 		test = route([start_service],start_service.sum)
 		test.adapt_dfs_search(end,node_map)
-		print count
+		#print count
 
-	print best
+	#print best
 
 	if best_route != None: 
-		print "start from: ",best_route.pro_route[0].name ," end at: ",best_route.pro_route[-1].name
+		pass
+		#print "start from: ",best_route.pro_route[0].name ," end at: ",best_route.pro_route[-1].name
+	#------------add-------------
+	return best
+	#------------add-------------
 
 def run(start,end,node_map,workflow,original_best_QoS):
-	print start,end
+	#print start,end
 	global best
 	best = 0
 	global count
-	count = 0
+	#count = 0
 
 	global best_route	
 	best_route = None
@@ -286,19 +311,79 @@ def run(start,end,node_map,workflow,original_best_QoS):
 	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
 
 	for index in start:
-		print "start from service: ",index.name
+		#print "start from service: ",index.name
 		start_service = index
 		test = route([start_service],start_service.sum)
 		test.adapt_dfs_search(end,node_map)
-		print count
+		#print count
 
 	if best > original_best_QoS:
-		print best
-		print "start from: ",best_route.pro_route[0].name ," end at: ",best_route.pro_route[-1].name
+		pass
+		#print best
+		#print "start from: ",best_route.pro_route[0].name ," end at: ",best_route.pro_route[-1].name
 
 	else:
-		print "Nothing good than fixed"
+		pass
+		#print "Nothing good than fixed"
+	#------------add-------------
+	return best
+	#------------add-------------
+
+def union(a,b):
+	return list(set(a).union(set(b)))
+
+def union3(a,b,c):
+	return union(union(a,b),c)
+
+"""
+def put_in(best,best_start,best_end,start,start_strong,start_weak,end,end_strong,end_weak,ans):
+	if best_start in start and best_end in end and best > ans[0]:
+		ans[0] = best
+	elif best_start in 
+"""
+
+
+def run_kai(start,start_strong,start_weak,end,end_strong,end_weak,node_map,workflow):
+	#ans = [0]*9
+
+	union_start = union3(start,start_strong,start_weak)
+	union_end  = union3(end,end_strong,end_weak)
+
+	print union_start,union_end
+	global best
+	best = 0
+	global count
+	count = 0
+
+	global best_route
+	best_route = None
+
+	union_start = skyline_service_select([workflow[0][i] for i in union_start],0,node_map) #add: skyline algorithm
+
+	for index in union_start:
+		print "start from service: ",index.name
+		start_service = index
+		test = route([start_service],start_service.sum)
+		test.adapt_dfs_search(union_end,node_map)
+		print count
+
+	if best > 0:
+		best_start = int(best_route.pro_route[0].name)
+		best_end = int(best_route.pro_route[-1].name)
+		if best_start in start and best_end in end:
+			print "fixed is best!!!"
+			print best
+			print "start from: ",best_start ," end at: ",best_end
+		else:
+			print "better than fixed!!!"
+			print best
+			print "start from: ",best_start ," end at: ",best_end
+
+
 #-----------------------------------------------------
+
+
+
 
 
 
@@ -310,8 +395,11 @@ if __name__ == "__main__":
 	start = sorted(random_choice(range(10)))
 	end = sorted(random_choice(range(10)))
 
-	print "------------------------------fixed------------------------------"
-	run_original(start,end,node_map,workflow)
+	version3_ans = [0]*9
+
+	print "---------------------------------version3---------------------------------"
+	#print "------------------------------fixed------------------------------"
+	version3_ans[0] = run_original(start,end,node_map,workflow)
 	original_best_QoS = best
 
 #----------------add to skyline.py--------------------
@@ -323,29 +411,29 @@ if __name__ == "__main__":
 	start_strong, start_one_weak = bure(start,start_strong_list,start_weak_list)
 	end_strong, end_one_weak = bure(end,end_strong_list,end_weak_list)
 
-	print "----------------------strong,fixed------------------------"
-	run(start_strong,end,node_map,workflow,original_best_QoS)
-	print "----------------------fixed,strong------------------------"
-	run(start,end_strong,node_map,workflow,original_best_QoS)
-	print "----------------------one_weak,fixed------------------------"
-	run(start_one_weak,end,node_map,workflow,original_best_QoS)
-	print "----------------------fixed,one_weak------------------------"
-	run(start,end_one_weak,node_map,workflow,original_best_QoS)
 
-	print "----------------------strong,strong------------------------"
-	run(start_strong,end_strong,node_map,workflow,original_best_QoS)
-	print "----------------------strong,one_weak------------------------"
-	run(start_strong,end_one_weak,node_map,workflow,original_best_QoS)
-	print "----------------------one_weak,strong------------------------"
-	run(start_one_weak,end_strong,node_map,workflow,original_best_QoS)
-	print "----------------------one_weak,one_weak------------------------"
-	run(start_one_weak,end_one_weak,node_map,workflow,original_best_QoS)
+	#print "----------------------strong,fixed------------------------"
+	version3_ans[1] = run(start_strong,end,node_map,workflow,original_best_QoS)
+	#print "----------------------fixed,strong------------------------"
+	version3_ans[2] = run(start,end_strong,node_map,workflow,original_best_QoS)
+	#print "----------------------one_weak,fixed------------------------"
+	version3_ans[3] = run(start_one_weak,end,node_map,workflow,original_best_QoS)
+	#print "----------------------fixed,one_weak------------------------"
+	version3_ans[4] = run(start,end_one_weak,node_map,workflow,original_best_QoS)
 
+	#print "----------------------strong,strong------------------------"
+	version3_ans[5] = run(start_strong,end_strong,node_map,workflow,original_best_QoS)
+	#print "----------------------strong,one_weak------------------------"
+	version3_ans[6] = run(start_strong,end_one_weak,node_map,workflow,original_best_QoS)
+	#print "----------------------one_weak,strong------------------------"
+	version3_ans[7] = run(start_one_weak,end_strong,node_map,workflow,original_best_QoS)
+	#print "----------------------one_weak,one_weak------------------------"
+	version3_ans[8] = run(start_one_weak,end_one_weak,node_map,workflow,original_best_QoS)
+	
+	print version3_ans
+	print count
 
-
-
-
-
-
-
+	print "---------------------------------version3---------------------------------"
+	#print "------------------------------------------------run_kai---------------------------------------------------------------"
+	run_kai(start,start_strong,start_one_weak,end,end_strong,end_one_weak,node_map,workflow)
 #-----------------------------------------------------
