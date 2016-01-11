@@ -36,6 +36,8 @@ def adapt_dfs_search(self,end_list,node_map):
 
 	elif self.last.next != []:#非空，所以这里不可能是最后一个，pro_route长度不会等于10
 		sers = skyline_service_select(self.last.next,len(self.pro_route),node_map) #add: skyline algorithm
+		if len(self.pro_route) < 8:
+			sers = disable(sers)
 		for next in sers:
 			count = count + 1  #add
 			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map)
@@ -77,7 +79,7 @@ def adapt_dfs_search_kai(self,end_list,node_map,start,start_strong,start_weak,en
 	elif self.last.next != []:#非空，所以这里不可能是最后一个，pro_route长度不会等于10
 		sers = skyline_service_select(self.last.next,len(self.pro_route),node_map) #add: skyline algorithm
 		if len(self.pro_route) < 8:
-			sers = diable(sers)
+			sers = disable(sers)
 		for next in sers:
 			count = count + 1  #add
 			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map,start,start_strong,start_weak,end,end_strong,end_weak)
@@ -182,7 +184,7 @@ def skyline_service_select(service_list,task_number,node_map):
 
 
 #---------------最終アルゴリズム----------------
-def diable(service_list1):
+def disable(service_list1):
 	service_list = copy.deepcopy(service_list1)
 	service_list.sort(key = lambda service : -service.sum)
 	used = []

@@ -33,6 +33,8 @@ def adapt_dfs_search(self,end_list,node_map):
 
 	elif self.last.next != []:#非空，所以这里不可能是最后一个，pro_route长度不会等于10
 		sers = skyline_service_select(self.last.next,len(self.pro_route),node_map) #add: skyline algorithm
+		if len(self.pro_route) < 8:
+			sers = disable(sers)
 		for next in sers:
 			count = count + 1
 			route(self.pro_route + [next] , self.QoS_sum + next.sum).adapt_dfs_search(end_list,node_map)
@@ -133,6 +135,23 @@ def skyline_service_select(service_list,task_number,node_map):
 	return ans
 
 	
+#---------------最終アルゴリズム----------------
+def disable(service_list1):
+	service_list = copy.deepcopy(service_list1)
+	service_list.sort(key = lambda service : -service.sum)
+	used = []
+	used_number = []
+	for i in range(len(service_list)):
+		temp = service_list[i]
+		next = diff(temp.next,used)
+		next_number = diff(temp.next_number,used_number)
+		used  = used + next
+		used_number = used_number + next_number
+		service_list[i].next = next
+		service_list[i].next_number = next_number
+
+	return service_list
+#---------------最終アルゴリズム----------------
 
 
 def diff(a, b): #output := a-b
@@ -140,6 +159,8 @@ def diff(a, b): #output := a-b
 
 def issub(a,b): #return True if a is b's subset
 	return set(a).issubset(set(b))
+
+	
 
 def gen_node_list(service_list1): #input := [ser,ser,...], output := [node, node]
 	service_list = copy.deepcopy(service_list1)

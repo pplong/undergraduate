@@ -1,39 +1,5 @@
 ## -*- coding: utf-8 -*-
-"""
-from naive_kai import gen
-workflow = gen()
-task = workflow[0]
-from skyline import gen_node_list
-a = gen_node_list(task)
-for node in a:
-	node.printf()
-"""
 
-"""
-from naive_kai import gen
-workflow = gen()
-task = workflow[1]
-from skyline import gen_node_list,unique,skyline_service_select
-a = gen_node_list(task)
-for node in a:
-	node.printf()
-
-b = unique(task)
-for ser in b:
-	ser.printf()
-
-node_map = map(lambda x: gen_node_list(x),workflow)
-
-
-print "------------------------------------"
-
-c = skyline_service_select(b,1,node_map)
-for ser in c:
-	ser.printf()
-
-
-
-"""
 #-----------------证明skyline的正当性----------------
 from naive import service
 from random import uniform
@@ -172,6 +138,8 @@ def adapt_dfs_search(self,end_list):
 
 	elif self.last.next != []:#非空，所以这里不可能是最后一个，pro_route长度不会等于10
 		sers = skyline_service_select(self.last.next,len(self.pro_route)) #add: skyline algorithm
+		if len(self.pro_route) < 8:
+			sers = disable(sers)
 		#sers = self.last.next
 		for next in sers:
 			count = count + 1
@@ -277,6 +245,25 @@ def skyline_service_select(service_list,task_number):
 	ans = leave_sers(ser_and_node)#留下的sers
 	ans.sort(key = lambda service : service.name)
 	return ans
+
+#---------------最終アルゴリズム----------------
+def disable(service_list1):
+	service_list = copy.deepcopy(service_list1)
+	service_list.sort(key = lambda service : -service.sum)
+	used = []
+	used_number = []
+	for i in range(len(service_list)):
+		temp = service_list[i]
+		next = diff(temp.next,used)
+		next_number = diff(temp.next_number,used_number)
+		used  = used + next
+		used_number = used_number + next_number
+		service_list[i].next = next
+		service_list[i].next_number = next_number
+
+	return service_list
+#---------------最終アルゴリズム----------------
+
 
 
 def diff(a, b): #output := a-b
