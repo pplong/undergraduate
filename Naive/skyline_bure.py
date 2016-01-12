@@ -316,7 +316,7 @@ def run_original(start,end,node_map,workflow):
 	best_route = None
 
 	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
-	#start = disable(start)
+	start = disable(start)
 	for index in start:
 		#print "start from service: ",index.name
 		start_service = index
@@ -344,7 +344,7 @@ def run(start,end,node_map,workflow,original_best_QoS):
 	best_route = None
 
 	start = skyline_service_select([workflow[0][i] for i in start],0,node_map) #add: skyline algorithm
-	#start = disable(start)
+	start = disable(start)
 	for index in start:
 		#print "start from service: ",index.name
 		start_service = index
@@ -369,6 +369,19 @@ def union(a,b):
 
 def union3(a,b,c):
 	return union(union(a,b),c)
+
+def unique_kai(service_list):
+	temp = service_list
+
+	while(temp != []):
+		ser = temp[0]
+		sers = [i for i in temp if i.name == ser.name]
+		temp = diff(temp,sers)
+		sers.sort(key = lambda service: len(service.next))
+		service_list = diff(service_list,sers[:-1])
+
+	service_list.sort(key = lambda service: service.name)
+	return service_list
 
 
 def put_in(done_QoS,done_start,done_end,start,start_strong,start_weak,end,end_strong,end_weak):
@@ -418,13 +431,13 @@ def run_kai(start,start_strong,start_weak,end,end_strong,end_weak,node_map,workf
 			ans.append(workflow[0][num])
 		return ans
 
-	start1 = sers_to_number(skyline_service_select([workflow[0][i] for i in start],0,node_map))
-	start_strong1 = sers_to_number(skyline_service_select([workflow[0][i] for i in start_strong],0,node_map))
-	start_weak1 = sers_to_number(skyline_service_select([workflow[0][i] for i in start_weak],0,node_map))
+	start1 = disable(skyline_service_select([workflow[0][i] for i in start],0,node_map))
+	start_strong1 = disable(skyline_service_select([workflow[0][i] for i in start_strong],0,node_map))
+	start_weak1 = disable(skyline_service_select([workflow[0][i] for i in start_weak],0,node_map))
 
 	union_start = union3(start1,start_strong1,start_weak1)
 	#print union_start
-	union_start = number_to_sers(union_start)
+	union_start = unique_kai(union_start)
 	#union_start = disable(union_start)
 	union_end  = union3(end,end_strong,end_weak)
 		
@@ -469,6 +482,7 @@ if __name__ == "__main__":
 	#print "---------------------------------version3---------------------------------"
 	#print "------------------------------fixed------------------------------"
 	version3_ans[0] = run_original(start,end,node_map,workflow)
+	fixed_count = count
 	original_best_QoS = best
 
 #----------------add to skyline.py--------------------
@@ -496,13 +510,11 @@ if __name__ == "__main__":
 	version3_ans[7] = run(start_one_weak,end_strong,node_map,workflow,original_best_QoS)
 	#print "----------------------one_weak,one_weak------------------------"
 	version3_ans[8] = run(start_one_weak,end_one_weak,node_map,workflow,original_best_QoS)
-	
 
-	writer = csv.writer(file('experiment2.csv', 'a+'))
+	writer = csv.writer(file('experiment2_kai.csv', 'a+'))
 	#writer.writerow(['fixed', 'fixed-strong', 'fixed-one_weak','strong-fixed','strong-strong','strong-one_weak','one_weak-fixed','one_weak-strong','one_weak-one_weak'])
 	line = version3_ans
 	writer.writerow(line)
-
 
 	#print version3_ans
 	#print count
@@ -514,9 +526,9 @@ if __name__ == "__main__":
 	run_kai(start,start_strong,start_one_weak,end,end_strong,end_one_weak,node_map,workflow)
 	#print version4_ans
 	#print count
-	writer = csv.writer(file('experiment3.csv', 'a+'))
-	#writer.writerow(['version3_count', 'version4_count', 'is_equal'])
-	line = [version3_count,count,version3_ans == version4_ans]
-	writer.writerow(line)
 
-#-----------------------------------------------------
+
+	writer = csv.writer(file('experiment3_kai.csv', 'a+'))
+	#writer.writerow(['fixed_count','version3_count', 'version4_count', 'is_equal'])
+	line = [fixed_count,version3_count,count,version3_ans == version4_ans]
+	writer.writerow(line)
