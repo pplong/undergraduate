@@ -71,7 +71,6 @@ for (i in 2:9){
 #[8,]  166 6.138065
 #make a table here(in latex)!
 
-
 plot(all_result,xlim=c(150,280),ylim=c(0,7),main="Performance of 8 conditions in 566 total improved cases", xlab="Improved cases", ylab="Average improvement ratio (in % of fixed-fixed)")
 text(all_result, labels = c("fixed,strong","fixed,one_weak","strong,fixed","strong,strong","strong,one_weak","one_weak,fixed","one_weak,strong","one_weak,one_weak"), cex= 0.7,pos=3)
 
