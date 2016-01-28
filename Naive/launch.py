@@ -7,6 +7,8 @@ from random import choice
 from random import sample
 import copy
 import csv
+import timeit
+
 global count
 count = 0
 
@@ -101,6 +103,9 @@ end = sorted(random_choice(range(10)))
 
 
 best1 = 0
+
+start1 = timeit.default_timer()
+
 for index in start:
 	start_service = workflow[0][index]
 
@@ -113,6 +118,9 @@ for index in start:
 	#print best1
 
 	#print count
+
+stop1 = timeit.default_timer()
+#print stop1 - start1
 
 #print "-----------------------------------------------------------"
 
@@ -316,6 +324,7 @@ start_sers = skyline_service_select([workflow[0][i] for i in start],0) #add: sky
 start_sers = disable(start_sers)
 
 best2 = 0
+start2 = timeit.default_timer()
 for ser in start_sers:
 	start_service = ser
 	#print "---------------"
@@ -325,12 +334,12 @@ for ser in start_sers:
 	#print best2
 	#ans2.append(best2)
 	#print count
+stop2 = timeit.default_timer()
+#print stop2 - start2
 
-
-
-writer = csv.writer(file('experiment1.csv', 'a+'))
-#writer.writerow(['Full_search', 'Skyline', 'is_equal'])
-line = [full_search,count,best1 == best2]
+writer = csv.writer(file('experiment1-last.csv', 'a+'))
+#writer.writerow(['Full_search', 'Skyline', 'is_equal','time1','time2'])
+line = [full_search,count,best1 == best2,stop1-start1,stop2-start2]
 writer.writerow(line)
 
 

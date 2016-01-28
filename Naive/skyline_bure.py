@@ -4,6 +4,7 @@ from naive_kai import gen,random_choice
 from random import uniform
 import copy
 import csv
+import timeit
 global count
 count = 0
 global best
@@ -469,6 +470,17 @@ def run_kai(start,start_strong,start_weak,end,end_strong,end_weak,node_map,workf
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
 	workflow = gen()
 #-----------add to naive_kai-------------
@@ -481,8 +493,13 @@ if __name__ == "__main__":
 
 	#print "---------------------------------version3---------------------------------"
 	#print "------------------------------fixed------------------------------"
+	
+
+	start1 = timeit.default_timer()
+	
 	version3_ans[0] = run_original(start,end,node_map,workflow)
 	fixed_count = count
+	stop1_0 = timeit.default_timer()
 	original_best_QoS = best
 
 #----------------add to skyline.py--------------------
@@ -496,39 +513,80 @@ if __name__ == "__main__":
 
 	#print "----------------------fixed,strong------------------------"
 	version3_ans[1] = run(start,end_strong,node_map,workflow,original_best_QoS)
-	#print "----------------------fixed,one_weak------------------------"
-	version3_ans[2] = run(start,end_one_weak,node_map,workflow,original_best_QoS)
 	#print "----------------------strong,fixed------------------------"
 	version3_ans[3] = run(start_strong,end,node_map,workflow,original_best_QoS)
 	#print "----------------------strong,strong------------------------"
 	version3_ans[4] = run(start_strong,end_strong,node_map,workflow,original_best_QoS)
+
+	stop1_1 = timeit.default_timer()
+	version3_1 = count
+
 	#print "----------------------strong,one_weak------------------------"
 	version3_ans[5] = run(start_strong,end_one_weak,node_map,workflow,original_best_QoS)
-	#print "----------------------one_weak,fixed------------------------"
-	version3_ans[6] = run(start_one_weak,end,node_map,workflow,original_best_QoS)
 	#print "----------------------one_weak,strong------------------------"
 	version3_ans[7] = run(start_one_weak,end_strong,node_map,workflow,original_best_QoS)
+
+	stop1_2 = timeit.default_timer()	
+	version3_2 = count
+
+	#print "----------------------fixed,one_weak------------------------"
+	version3_ans[2] = run(start,end_one_weak,node_map,workflow,original_best_QoS)
+	#print "----------------------one_weak,fixed------------------------"
+	version3_ans[6] = run(start_one_weak,end,node_map,workflow,original_best_QoS)
 	#print "----------------------one_weak,one_weak------------------------"
 	version3_ans[8] = run(start_one_weak,end_one_weak,node_map,workflow,original_best_QoS)
 
-	writer = csv.writer(file('experiment2_kai.csv', 'a+'))
+	stop1_3 = timeit.default_timer()
+	version3_3 = count
+
+
+	writer = csv.writer(file('experiment2_kai-last.csv', 'a+'))
 	#writer.writerow(['fixed', 'fixed-strong', 'fixed-one_weak','strong-fixed','strong-strong','strong-one_weak','one_weak-fixed','one_weak-strong','one_weak-one_weak'])
 	line = version3_ans
 	writer.writerow(line)
 
 	#print version3_ans
 	#print count
-	version3_count = count
+
+	#version3_count = count
+
 	#print "---------------------------------version4---------------------------------"
 	version4_ans = [0]*9
 	route.adapt_dfs_search = adapt_dfs_search_kai
 	#print "------------------------------------------------run_kai---------------------------------------------------------------"
+
+	#rigor strong
+	start2 = timeit.default_timer()
+	run_kai(start,start_strong,[],end,end_strong,[],node_map,workflow)
+	stop2 = timeit.default_timer()
+	version4_1 = count
+
+	start3 = timeit.default_timer()
+	run_kai(start,[],[],end,end_strong,[],node_map,workflow)
+	version4_2_1 = count
+	run_kai([],start_strong,[],end,end_strong,end_one_weak,node_map,workflow)
+	version4_2_2 = count
+	run_kai([],[],start_one_weak,[],end_strong,[],node_map,workflow)
+	version4_2_3 = count
+	stop3 = timeit.default_timer()
+	version4_2 = version4_2_1 + version4_2_2 + version4_2_3 
+
+	start4 = timeit.default_timer()
 	run_kai(start,start_strong,start_one_weak,end,end_strong,end_one_weak,node_map,workflow)
+	stop4 = timeit.default_timer()
+	version4_3 = count
 	#print version4_ans
 	#print count
 
 
-	writer = csv.writer(file('experiment3_kai.csv', 'a+'))
+	writer = csv.writer(file('experiment3_kai-last-1.csv', 'a+'))
 	#writer.writerow(['fixed_count','version3_count', 'version4_count', 'is_equal'])
-	line = [fixed_count,version3_count,count,version3_ans == version4_ans]
+	#writer.writerow(['fixed_count','version3_1','version3_2','version3_3','version4_1','version4_2','version4_3', 'is_equal'])
+	line = [fixed_count,version3_1,version3_2,version3_3,version4_1,version4_2,version4_3,version3_ans == version4_ans]
+	writer.writerow(line)
+
+
+	writer = csv.writer(file('experiment3_kai-last-2.csv', 'a+'))
+	#writer.writerow(['fixed_time','v31','v32','v33','v41','v42','v43'])
+	line = [stop1_0-start1,stop1_1-start1,stop1_2-start1,stop1_3-start1,stop2-start2,stop3-start3,stop4-start4]
 	writer.writerow(line)
