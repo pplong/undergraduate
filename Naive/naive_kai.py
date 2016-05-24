@@ -53,7 +53,7 @@ class route(object):
 
 
 def random_choice(lists):
-	num = choice(range(0,len(lists)+1))
+	num = choice(range(1,len(lists)+1))
 	return sample(lists, num)
 
 def gen():
